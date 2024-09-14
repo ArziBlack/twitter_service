@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const path = require("path");
 const dotenv = require("dotenv");
 const { TwitterApi } = require("twitter-api-v2");
@@ -9,6 +10,15 @@ dotenv.config();
 const app = express();
 const port = process.env.PORT || 3000;
 
+app.use(
+  session({
+    secret: "my_personnal_secret",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
+
 app.use(express.static(path.join(__dirname, "../public")));
 
 const callbackUrl = process.env.TWITTER_CALLBACK_URL;
@@ -17,14 +27,15 @@ app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
 });
 
+const twitterClient = new TwitterApi({
+  clientId: process.env.TWITTER_CLIENT_ID,
+});
+
 // Redirect to twitter for authentication
 app.get(
   "/auth/twitter",
   asyncWrapOrError(async (req, res) => {
     try {
-      const twitterClient = new TwitterApi({
-        clientId: process.env.TWITTER_CLIENT_ID,
-      });
       const { url, codeVerifier, state } =
         await twitterClient.generateOAuth2AuthLink(callbackUrl, {
           scope: ["tweet.read", "users.read"],
