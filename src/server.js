@@ -11,14 +11,6 @@ const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, "../public")));
 
-const twitterClient = new TwitterApi({
-  appKey: process.env.TWITTER_CONSUMER_KEY,
-  appSecret: process.env.TWITTER_CONSUMER_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_TOKEN_SECRET,
-});
-
-
 const callbackUrl = process.env.TWITTER_CALLBACK_URL;
 
 app.get("/", (req, res) => {
@@ -30,60 +22,63 @@ app.get(
   "/auth/twitter",
   asyncWrapOrError(async (req, res) => {
     try {
-      const { url, oauth_token, oauth_token_secret } =
-        await twitterClient.generateAuthLink(callbackUrl);
-      console.log(callbackUrl);
+      const twitterClient = new TwitterApi({
+        clientId: process.env.TWITTER_CLIENT_ID,
+      });
+      const { url, codeVerifier, state } =
+        await twitterClient.generateOAuth2AuthLink(callbackUrl, {
+          scope: ["tweet.read", "users.read"],
+        });
 
-      // Store oauth_token_secret temporarily (in production, use a more secure method)
-      req.session = { oauth_token_secret };
+      req.session = { codeVerifier, state };
 
       res.json({
         success: true,
         authUrl: url,
       });
+      console.log(url);
+      console.log(state);
     } catch (error) {
       console.error("Error generating Twitter auth link:", error);
-      res
-        .status(500)
-        .json({
-          success: false,
-          error: "Failed to authenticate with Twitter.",
-        });
+      res.status(500).json({
+        success: false,
+        error: "Failed to authenticate with Twitter.",
+      });
     }
   })
 );
 
 app.get("/auth/callback", async (req, res) => {
-  const { oauth_token, oauth_verifier } = req.query;
-  const { oauth_token_secret } = req.session;
+  const { state, code } = req.query;
+  const { state: storedState, codeVerifier } = req.session;
 
-  if (!oauth_token || !oauth_verifier) {
-    return res
-      .status(400)
-      .json({ success: false, error: "Missing oauth_token or oauth_verifier" });
+  // Check if the state matches
+  if (!state || storedState !== state) {
+    return res.status(400).json({ error: "State mismatch or missing" });
   }
 
+  // Exchange the authorization code for an access token
   try {
-    // Complete the OAuth process
     const {
       client: loggedClient,
       accessToken,
-      accessSecret,
-    } = await twitterClient.login(
-      oauth_token,
-      oauth_token_secret,
-      oauth_verifier
-    );
+      refreshToken,
+      expiresIn,
+    } = await twitterClient.loginWithOAuth2({
+      code,
+      codeVerifier,
+      redirectUri: callbackUrl,
+    });
 
-    const user = await loggedClient.v2.me();
+    const user = await loggedClient.currentUser();
 
     res.json({
-      success: true,
-      message: "Successfully authenticated with Twitter!",
-      data: {
+      message: "OAuth login successful!",
+      user: user,
+      credentials: {
         accessToken,
-        accessSecret,
-        user,
+        refreshToken,
+        expiresIn,
       },
     });
     console.log(user);
