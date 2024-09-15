@@ -41,14 +41,18 @@ app.get(
           scope: ["tweet.read", "users.read"],
         });
 
-      req.session = { codeVerifier, state };
+      console.log("starting req.session...");
+      console.log("URL Returned: ", url);
+      console.log("State Returned: ", state);
+      console.log("Code Verifier Returned: ", codeVerifier);
+      
+      req.session.codeVerifier = codeVerifier;
+      req.session.state = state;
 
       res.json({
         success: true,
         authUrl: url,
       });
-      console.log(url);
-      console.log(state);
     } catch (error) {
       console.error("Error generating Twitter auth link:", error);
       res.status(500).json({
@@ -61,7 +65,8 @@ app.get(
 
 app.get("/auth/callback", async (req, res) => {
   const { state, code } = req.query;
-  const { state: storedState, codeVerifier } = req.session;
+  const storedState = req.session.state;
+  const codeVerifier = req.session.codeVerifier;
 
   // Check if the state matches
   if (!state || storedState !== state) {
