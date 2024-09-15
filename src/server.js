@@ -37,7 +37,7 @@ const TOKENS = {
 
 // now using OAuth1.0
 const twitterClient = new TwitterApi({
-    ...TOKENS
+  ...TOKENS,
 });
 
 // Redirect to twitter for authentication
@@ -116,16 +116,16 @@ app.get(
       const { accessToken, accessSecret, screenName, userId } =
         await tempClient.login(verifier);
       // You can store & use accessToken + accessSecret to create a new client and make API calls!
-
-    //   res.render("callback", { accessToken, accessSecret, screenName, userId });
-        res.json({
-          success: true,
-        //   authUrl: url,
-          userId,
-          accessSecret,
-          accessToken,
-          screenName
-        });
+      res.redirect(
+        `/success?userId=${userId}&accessSecret=${accessSecret}&accessToken=${accessToken}&screenName=${screenName}`
+      );
+      // res.json({
+      //   success: true,
+      //   userId,
+      //   accessSecret,
+      //   accessToken,
+      //   screenName
+      // });
 
       // Check if the state matches
       //   if (!state || storedState !== state) {
@@ -155,7 +155,7 @@ app.get(
       //     expiresIn,
       //   },
       // });
-    //   console.log(user);
+      //   console.log(user);
     } catch (error) {
       console.error("Error during Twitter callback:", error);
       res.status(500).json({
@@ -165,6 +165,10 @@ app.get(
     }
   })
 );
+
+app.get("/success", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/success.html"));
+});
 
 app.get("/api/data", (req, res) => {
   res.json({
