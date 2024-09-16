@@ -1,28 +1,25 @@
 const express = require("express");
-const session = require("express-session");
 const path = require("path");
 const dotenv = require("dotenv");
 const { TwitterApi } = require("twitter-api-v2");
-const asyncWrapOrError = require("./util");
 
 dotenv.config();
 
 const app = express();
 const port = process.env.PORT || 3000;
 
-app.use(
-  session({
-    secret: "my_personnal_secret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false },
-  })
-);
-
 app.use(express.static(path.join(__dirname, "../public")));
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
+});
+
+app.get("/user", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/user.html"));
+});
+
+app.get("/tweets", (req, res) => {
+  res.sendFile(path.join(__dirname, "../public/tweets.html"));
 });
 
 // now using OAuth2.0
@@ -39,12 +36,12 @@ app.get("/api/user/:username", async (req, res) => {
     });
 
     console.log(user.data);
-    console.log(tweets.data);
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error fetching user data:", error.data.title);
     res.status(500).json({
       success: false,
-      error: "Failed to fetch user data.",
+      message: "Failed to fetch user data.",
+      error: error?.data?.title
     });
   }
 });
@@ -76,22 +73,6 @@ app.get("/api/tweets/:username", async (req, res) => {
       error: "Failed to fetch tweets...",
     });
   }
-});
-
-app.get("/success", (req, res) => {
-  res.sendFile(path.join(__dirname, "../public/success.html"));
-});
-
-app.get("/api/data", (req, res) => {
-  res.json({
-    message: "Hello, World!",
-    success: true,
-    data: {
-      id: 1,
-      name: "Static server",
-      description: "This is a sample JSON response...",
-    },
-  });
 });
 
 app.listen(port, () => {

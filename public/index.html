@@ -3,68 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Twitter OAuth</title>
+    <title>Twitter User Data and Tweets</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
         }
-
-        h1 {
-            color: #5832a8;
-        }
-
         .container {
-            text-align: center;
+            max-width: 800px;
+            margin: 50px auto;
             padding: 20px;
+            background-color: white;
             border-radius: 10px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            background-color: #fff;
         }
-
-        button {
-            background-color: #1DA1F2;
-            color: white;
-            border: none;
+        h1 {
+            color: #5832a8;
+            text-align: center;
+        }
+        .nav-buttons {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .nav-buttons button {
             padding: 10px 20px;
             font-size: 16px;
-            border-radius: 5px;
+            background-color: #5832a8;
+            color: white;
+            border: none;
             cursor: pointer;
+            margin: 10px;
+            width: 150px;
         }
-
-        button:hover {
-            background-color: #0c7abf;
+        .nav-buttons button:hover {
+            background-color: #472997;
+        }
+        iframe {
+            width: 100%;
+            height: 500px;
+            border: none;
+            margin-top: 20px;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Welcome to Twitter OAuth</h1>
-        <p>This page is served as a static HTML page.</p>
-        <button id="twitter-auth-btn">Sign in with Twitter</button>
-
-        <div id="auth-status" style="margin-top: 20px;"></div>
+        <h1>Twitter User Data and Tweets</h1>
+        <div class="nav-buttons">
+            <a href="/user">
+                <button>User Data</button>
+            </a>
+            <a href="/tweets">
+                <button>Tweets</button>
+            </a>
+        </div>
+        <!-- <iframe id="contentFrame" src="user.html"></iframe> -->
     </div>
 
     <script>
-        document.getElementById('twitter-auth-btn').addEventListener('click', async () => {
-            try {
-                const response = await fetch('/auth/twitter');
-                const result = await response.json();
-
-                if (result.success && result.authUrl) {
-                    window.location.href = result.authUrl;
-                } else {
-                    document.getElementById('auth-status').textContent = 'Failed to initiate Twitter OAuth';
-                }
-            } catch (error) {
-                document.getElementById('auth-status').textContent = 'Error: ' + error.message;
-            }
-        });
+        // function loadPage(page) {
+        //     document.getElementById('contentFrame').src = page;
+        // }
     </script>
 </body>
 </html>

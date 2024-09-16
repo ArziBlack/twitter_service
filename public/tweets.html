@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Tweets</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #5832a8;
+            text-align: center;
+        }
+        .input-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .input-container input {
+            padding: 10px;
+            font-size: 16px;
+            width: 80%;
+            max-width: 400px;
+        }
+        .input-container button {
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #5832a8;
+            color: white;
+            border: none;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+        .input-container button:hover {
+            background-color: #472997;
+        }
+        .tweets {
+            margin-top: 20px;
+        }
+        .tweet {
+            padding: 10px;
+            margin: 10px 0;
+            border-bottom: 1px solid #ccc;
+        }
+        .tweet p {
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Recent Tweets</h1>
+        <div class="input-container">
+            <input type="text" id="username" placeholder="Enter Twitter username">
+            <button onclick="fetchTweets()">Get Tweets</button>
+        </div>
+        <div id="tweets" class="tweets">
+            <p>Please enter a username to view the tweets.</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchTweets() {
+            const username = document.getElementById('username').value;
+
+            if (!username) {
+                document.getElementById('tweets').textContent = 'Please enter a valid username.';
+                return;
+            }
+
+            const response = await fetch(`/api/tweets/${username}`);
+            const result = await response.json();
+            
+            if (result.success) {
+                const tweetsDiv = document.getElementById('tweets');
+                const tweets = result.tweets;
+                tweetsDiv.innerHTML = '';  // Clear the loading message
+
+                tweets.forEach(tweet => {
+                    const tweetDiv = document.createElement('div');
+                    tweetDiv.className = 'tweet';
+                    tweetDiv.innerHTML = `
+                        <p>${tweet.text}</p>
+                        <small>Created at: ${new Date(tweet.created_at).toLocaleString()}</small>
+                    `;
+                    tweetsDiv.appendChild(tweetDiv);
+                });
+            } else {
+                document.getElementById('tweets').textContent = 'Failed to load tweets.';
+            }
+        }
+    </script>
+</body>
+</html>
