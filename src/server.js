@@ -30,14 +30,14 @@ app.get("/api/user/:username", async (req, res) => {
   try {
     const user = await twitterClient.v2.userByUsername(username);
 
-    res.json({
+    res.status(200).json({
       success: true,
       user: user.data,
     });
 
     console.log(user.data);
   } catch (error) {
-    console.error("Error fetching user data:", error.data.title);
+    console.error("Error fetching user data:", error?.data?.title);
     res.status(500).json({
       success: false,
       message: "Failed to fetch user data.",

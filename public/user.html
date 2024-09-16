@@ -79,17 +79,18 @@
             const response = await fetch(`/api/user/${username}`);
             const result = await response.json();
             
-            if (result.success) {
+            if (result.success === true && result.user) {
                 const userData = result.user;
                 const userDiv = document.getElementById('user-data');
                 userDiv.innerHTML = `
-                    <img src="${userData.profile_image_url}" alt="Profile Image" />
-                    <h2>${userData.name} (@${userData.username})</h2>
-                    <p>Bio: ${userData.description}</p>
-                    <p>Followers: ${userData.public_metrics.followers_count}</p>
-                    <p>Following: ${userData.public_metrics.following_count}</p>
-                    <p>Tweets: ${userData.public_metrics.tweet_count}</p>
+                    <img src="${userData?.profile_image_url}" alt="Profile Image" />
+                    <h2>${userData?.name} (@${userData?.username})</h2>
+                    <p>Bio: ${userData?.description}</p>
+                    <p>Followers: ${userData?.public_metrics?.followers_count}</p>
+                    <p>Following: ${userData?.public_metrics.following_count}</p>
+                    <p>Tweets: ${userData?.public_metrics.tweet_count}</p>
                 `;
+                return userDiv;
             } else {
                 document.getElementById('user-data').textContent = 'Failed to load user data.';
             }
