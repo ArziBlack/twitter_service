@@ -1,4 +1,5 @@
 const express = require("express");
+const session = require("express-session");
 const path = require("path");
 const dotenv = require("dotenv");
 const { TwitterApi } = require("twitter-api-v2");
@@ -9,6 +10,15 @@ const app = express();
 const port = process.env.PORT || 3000;
 
 app.use(express.static(path.join(__dirname, "../public")));
+
+app.use(
+  session({
+    secret: "your-secret-key",
+    resave: false,
+    saveUninitialized: true,
+    cookie: { secure: false },
+  })
+);
 
 app.get("/", (req, res) => {
   res.sendFile(__dirname + "/index.html");
@@ -37,23 +47,20 @@ app.get("/auth/twitter", async (req, res) => {
       );
 
     console.log("Please go to", url);
+    console.log("Code verifier", codeVerifier);
+    console.log("State", state);
 
     req.session.codeVerifier = codeVerifier;
     req.session.state = state;
 
     res.redirect(url);
-    // res.status(200).json({
-    //   success: true,
-    //   message:
-    //     "Successfully generated url, codeVerifier and state codes..., you can proceed to use them in your callback URL",
-    //   codes: { codeVerifier, state },
-    // });
+
   } catch (error) {
-    console.error("Error fetching user data:", error);
+    console.error("Error generating OAuth2 URL:", error);
     res.status(500).json({
       success: false,
-      message: "Failed to fetch user data.",
-      error: error,
+      message: "Failed to generate Twitter authentication URL.",
+      error: error.message,
     });
   }
 });
@@ -62,6 +69,7 @@ app.get("/auth/callback", async (req, res) => {
   const { state, code } = req.query;
   const { state: storedState, codeVerifier } = req.session;
   try {
+    console.log(process.env.TWITTER_CALLBACK_URL);
     if (!state && !code) {
       res.status(400).json({
         success: false,
