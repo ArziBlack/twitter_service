@@ -60,7 +60,6 @@ app.get("/auth/callback", async (req, res) => {
   const { state, code } = req.query;
   const { state: storedState, codeVerifier } = req.session;
   try {
-
     if (!state && !code) {
       res.status(400).json({
         success: false,
@@ -69,11 +68,25 @@ app.get("/auth/callback", async (req, res) => {
       return;
     }
 
+    const { client, accessToken, refreshToken } =
+      await twitterClient.loginWithOAuth2({
+        code,
+        codeVerifier,
+        redirectUri: process.env.TWITTER_CALLBACK_URL,
+      });
+
+    const user = await client.v2.me();
+
+    res
+      .json({ user })
+      .redirect(
+        `/success?refreshToken=${refreshToken}&accessToken=${accessToken}&screenName=success`
+      );
+
     res.json({
       success: true,
       tweets: tweets.data,
     });
-    
   } catch (error) {
     console.error("Error fetching Tweets:", error);
     res.status(500).json({
