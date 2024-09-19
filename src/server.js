@@ -30,30 +30,34 @@ const twitterClient = new TwitterApi({
 
 app.get("/auth/twitter", async (req, res) => {
   try {
-    const { url, codeVerifier, state } = await twitterClient.generateOAuth2AuthLink(
-      process.env.TWITTER_CALLBACK_URL,
-      { scope: ["tweet.read", "users.read", "offline.access"] }
-    );
+    const { url, codeVerifier, state } =
+      await twitterClient.generateOAuth2AuthLink(
+        process.env.TWITTER_CALLBACK_URL,
+        { scope: ["tweet.read", "users.read", "offline.access"] }
+      );
 
-    console.log('Please go to', url);
+    console.log("Please go to", url);
+
+    req.session = { codeVerifier, state };
+
     res.status(200).json({
       success: true,
-      user: user.data,
+      message:
+        "Successfully generated url, codeVerifier and state codes..., you can proceed to use them in your callback URL",
+      codes: { codeVerifier, state },
     });
 
-    console.log(user.data);
   } catch (error) {
-    console.error("Error fetching user data:", error?.data?.title);
+    console.error("Error fetching user data:", error);
     res.status(500).json({
       success: false,
       message: "Failed to fetch user data.",
-      error: error?.data?.title,
+      error: error,
     });
   }
 });
 
 app.get("/auth/callback", async (req, res) => {
-  const username = req.params.username;
 
   try {
     if (!username) {
