@@ -38,7 +38,7 @@ app.get("/auth/twitter", async (req, res) => {
 
     console.log("Please go to", url);
 
-    req.session = { codeVerifier, state };
+    req.session = { codeVerifier, state, url };
 
     res.status(200).json({
       success: true,
@@ -58,7 +58,7 @@ app.get("/auth/twitter", async (req, res) => {
 
 app.get("/auth/callback", async (req, res) => {
   const { state, code } = req.query;
-  const { state: storedState, codeVerifier } = req.session;
+  const { state: storedState, codeVerifier, url } = req.session;
   try {
     if (!state && !code) {
       res.status(400).json({
@@ -72,7 +72,7 @@ app.get("/auth/callback", async (req, res) => {
       await twitterClient.loginWithOAuth2({
         code,
         codeVerifier,
-        redirectUri: process.env.TWITTER_CALLBACK_URL,
+        redirectUri: url,
       });
 
     const user = await client.v2.me();
