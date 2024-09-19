@@ -3,9 +3,71 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👍 Authenticated Successfully 👍</title>
+    <title>👍oauth success👍</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+
+        h1 {
+            color: #5832a8;
+        }
+
+        .container {
+            text-align: center;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            background-color: #fff;
+        }
+
+        .info {
+            margin: 10px 0;
+        }
+
+        .info span {
+            font-weight: bold;
+        }
+
+        button {
+            background-color: #1DA1F2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 16px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #0c7abf;
+        }
+    </style>
 </head>
 <body>
-    
+    <div class="container">
+        <h1>OAuth Success! You are now authenticated</h1>
+        <div id="user-info">
+            <p class="info"><span>Screen Name:</span> <span id="screenName"></span></p>
+            <p class="info"><span>Access Token:</span> <span id="accessToken"></span></p>
+            <p class="info"><span>Refresh Token:</span> <span id="refreshToken"></span></p>
+        </div>
+    </div>
+
+    <script>
+        const params = new URLSearchParams(window.location.search);
+        const screenName = params.get('screenName');
+        const accessToken = params.get('accessToken');
+        const refreshToken = params.get('refreshToken');
+
+        document.getElementById('screenName').textContent = screenName;
+        document.getElementById('accessToken').textContent = accessToken;
+        document.getElementById('accessSecret').textContent = accessSecret;
+    </script>
 </body>
 </html>
