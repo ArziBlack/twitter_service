@@ -38,14 +38,16 @@ app.get("/auth/twitter", async (req, res) => {
 
     console.log("Please go to", url);
 
-    req.session = { codeVerifier, state, url };
+    req.session.codeVerifier = codeVerifier;
+    req.session.state = state;
 
-    res.status(200).json({
-      success: true,
-      message:
-        "Successfully generated url, codeVerifier and state codes..., you can proceed to use them in your callback URL",
-      codes: { codeVerifier, state },
-    });
+    res.redirect(url);
+    // res.status(200).json({
+    //   success: true,
+    //   message:
+    //     "Successfully generated url, codeVerifier and state codes..., you can proceed to use them in your callback URL",
+    //   codes: { codeVerifier, state },
+    // });
   } catch (error) {
     console.error("Error fetching user data:", error);
     res.status(500).json({
@@ -58,7 +60,7 @@ app.get("/auth/twitter", async (req, res) => {
 
 app.get("/auth/callback", async (req, res) => {
   const { state, code } = req.query;
-  const { state: storedState, codeVerifier, url } = req.session;
+  const { state: storedState, codeVerifier } = req.session;
   try {
     if (!state && !code) {
       res.status(400).json({
@@ -68,30 +70,32 @@ app.get("/auth/callback", async (req, res) => {
       return;
     }
 
+    if (state !== storedState) {
+      return res.status(400).json({
+        success: false,
+        message: "State mismatch. Potential CSRF detected.",
+      });
+    }
+
     const { client, accessToken, refreshToken } =
       await twitterClient.loginWithOAuth2({
         code,
         codeVerifier,
-        redirectUri: url,
+        redirectUri: process.env.TWITTER_CALLBACK_URL,
       });
 
     const user = await client.v2.me();
+    console.log(user);
 
-    res
-      .json({ user })
-      .redirect(
-        `/success?refreshToken=${refreshToken}&accessToken=${accessToken}&screenName=success`
-      );
-
-    res.json({
-      success: true,
-      tweets: tweets.data,
-    });
+    res.redirect(
+      `/success?refreshToken=${refreshToken}&accessToken=${accessToken}&screenName=${user?.username}`
+    );
   } catch (error) {
-    console.error("Error fetching Tweets:", error);
+    console.error("Error during OAuth2 callback:", error);
     res.status(500).json({
       success: false,
-      error: "Failed to fetch tweets...",
+      message: "Failed to complete Twitter authentication.",
+      error: error.message,
     });
   }
 });
