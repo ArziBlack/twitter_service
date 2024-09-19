@@ -23,9 +23,12 @@ app.get("/tweets", (req, res) => {
 });
 
 // now using OAuth2.0
-const twitterClient = new TwitterApi(process.env.TWITTER_BEARER_TOKEN);
+const twitterClient = new TwitterApi({
+  clientId: process.env.Client_ID,
+  clientSecret: process.env.Client_Secret,
+});
 
-app.get("/api/user/:username", async (req, res) => {
+app.get("/auth/user/:username", async (req, res) => {
   const username = req.params.username;
   try {
     const user = await twitterClient.v2.userByUsername(username);
@@ -41,7 +44,7 @@ app.get("/api/user/:username", async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to fetch user data.",
-      error: error?.data?.title
+      error: error?.data?.title,
     });
   }
 });
