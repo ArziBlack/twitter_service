@@ -46,7 +46,6 @@ app.get("/auth/twitter", async (req, res) => {
         "Successfully generated url, codeVerifier and state codes..., you can proceed to use them in your callback URL",
       codes: { codeVerifier, state },
     });
-
   } catch (error) {
     console.error("Error fetching user data:", error);
     res.status(500).json({
@@ -58,24 +57,23 @@ app.get("/auth/twitter", async (req, res) => {
 });
 
 app.get("/auth/callback", async (req, res) => {
-
+  const { state, code } = req.query;
+  const { state: storedState, codeVerifier } = req.session;
   try {
-    if (!username) {
+
+    if (!state && !code) {
       res.status(400).json({
         success: false,
-        data: "username not found in request",
+        data: "state and code not found in params!",
       });
       return;
     }
 
-    const user = await twitterClient.v2.userByUsername(username);
-    const tweets = await twitterClient.v2.userTimeline(user.data.id, {
-      max_results: 5,
-    });
     res.json({
       success: true,
       tweets: tweets.data,
     });
+    
   } catch (error) {
     console.error("Error fetching Tweets:", error);
     res.status(500).json({
