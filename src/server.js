@@ -28,11 +28,14 @@ const twitterClient = new TwitterApi({
   clientSecret: process.env.Client_Secret,
 });
 
-app.get("/auth/user/:username", async (req, res) => {
-  const username = req.params.username;
+app.get("/auth/twitter", async (req, res) => {
   try {
-    const user = await twitterClient.v2.userByUsername(username);
+    const { url, codeVerifier, state } = await twitterClient.generateOAuth2AuthLink(
+      process.env.TWITTER_CALLBACK_URL,
+      { scope: ["tweet.read", "users.read", "offline.access"] }
+    );
 
+    console.log('Please go to', url);
     res.status(200).json({
       success: true,
       user: user.data,
@@ -49,7 +52,7 @@ app.get("/auth/user/:username", async (req, res) => {
   }
 });
 
-app.get("/api/tweets/:username", async (req, res) => {
+app.get("/auth/callback", async (req, res) => {
   const username = req.params.username;
 
   try {
