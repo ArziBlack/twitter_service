@@ -53,7 +53,10 @@ app.get("/auth/twitter", async (req, res) => {
     req.session.codeVerifier = codeVerifier;
     req.session.state = state;
 
-    res.redirect(url);
+    res.status(200).json({
+      success: true,
+      authUrl: url
+    });
 
   } catch (error) {
     console.error("Error generating OAuth2 URL:", error);
@@ -65,7 +68,7 @@ app.get("/auth/twitter", async (req, res) => {
   }
 });
 
-app.get("/auth/callback", async (req, res) => {
+app.get("/api/v1/auth/twitter-callback", async (req, res) => {
   const { state, code } = req.query;
   const { state: storedState, codeVerifier } = req.session;
   try {
