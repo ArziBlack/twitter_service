@@ -59,6 +59,30 @@
                 <button>Tweets</button>
             </a>
         </div>
+        <div class="nav-buttons">
+            <a href="/user">
+                <button>signin</button>
+            </a>
+            <a href="/tweets">
+                <button>sigin</button>
+            </a>
+        </div>
     </div>
+    <script>
+         document.getElementById('twitter-auth-btn').addEventListener('click', async () => {
+            try {
+                const response = await fetch('/auth/twitter');
+                const result = await response.json();
+
+                if (result.success && result.authUrl) {
+                    window.location.href = result.authUrl;
+                } else {
+                    document.getElementById('auth-status').textContent = 'Failed to initiate Twitter OAuth';
+                }
+            } catch (error) {
+                document.getElementById('auth-status').textContent = 'Error: ' + error.message;
+            }
+        });
+    </script>
 </body>
 </html>
